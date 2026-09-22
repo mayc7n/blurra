@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "scheme": "blurra",
+    "orientation": "default",
+    "web": {
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O Blurra precisa acessar suas fotos para editar uma imagem.",
+          "cameraPermission": "O Blurra usa a câmera para capturar uma foto para edição."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "O Blurra usa a câmera para capturar uma foto para edição."
+        }
+      ],
+      "expo-sharing",
+      "expo-sqlite",
+      "expo-status-bar"
+    ],
+    "name": "Blurra",
+    "slug": "blurra",
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "O Blurra precisa acessar suas fotos para editar uma imagem.",
+        "NSCameraUsageDescription": "O Blurra usa a câmera para capturar uma foto para edição."
+      }
+    },
+    "android": {
+      "permissions": ["CAMERA", "READ_MEDIA_IMAGES"]
+    }
+  }
+}
