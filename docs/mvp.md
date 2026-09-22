@@ -10,6 +10,11 @@
 - PNG/JPEG export and native sharing.
 - Dark mode, Dynamic Type-friendly controls, and screen-reader labels.
 
+The editor uses a bounded preview surface for interaction and keeps brush
+strokes in source-image coordinates. Export snapshots the rendered canvas at
+the working size in this MVP; full-resolution replay remains a later native
+processor upgrade.
+
 ## Next versions
 
 Automatic person segmentation will use ML Kit Selfie Segmentation on Android

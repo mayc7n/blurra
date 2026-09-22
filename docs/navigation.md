@@ -7,8 +7,8 @@ Home
                        ├─ Desfocar / Pixelar
                        ├─ Pincel e intensidade
                        ├─ Antes/depois
-                       ├─ Presets
-                       └─ Exportar → Compartilhar / Salvar
+                       ├─ Presets → Aplicar / Salvar / Excluir
+                       └─ Exportar → PNG/JPEG → Compartilhar / Salvar
 ```
 
 The editor is the only screen that owns an active editing session. Leaving it

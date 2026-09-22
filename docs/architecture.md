@@ -24,8 +24,13 @@ zoom, device density, and export resolution.
 - `src/features/editor`: canvas, gestures, toolbar, and accessible controls.
 - `src/services/image`: Skia rendering and the future native processor seam.
 - `src/services/media`: gallery, camera, file, and media-library adapters.
-- `src/db`: SQLite preset repository.
+- `src/db`: SQLite preset repository on native platforms and an equivalent
+  in-memory adapter for web static export.
 - `src/native`: platform contracts such as future on-device segmentation.
+
+Export snapshots the rendered Skia view, encodes PNG/JPEG locally, writes to
+the app cache, and only then opens the native share sheet or media-library save
+flow. Export never clears or mutates the editor session.
 
 The MVP deliberately omits accounts, cloud sync, analytics, and server-side
 image processing.
