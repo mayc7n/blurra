@@ -4,7 +4,7 @@ export type History<T> = {
   future: T[];
 };
 
-export const MAX_HISTORY = 1000;
+export const maxHistory = 1000;
 
 export function createHistory<T>(present: T): History<T> {
   return { past: [], present, future: [] };
@@ -12,7 +12,7 @@ export function createHistory<T>(present: T): History<T> {
 
 export function commit<T>(history: History<T>, present: T): History<T> {
   return {
-    past: [...history.past, history.present].slice(-MAX_HISTORY),
+    past: [...history.past, history.present].slice(-maxHistory),
     present,
     future: [],
   };
@@ -25,7 +25,7 @@ export function undo<T>(history: History<T>): History<T> {
   return {
     past: history.past.slice(0, -1),
     present: previous,
-    future: [history.present, ...history.future].slice(0, MAX_HISTORY),
+    future: [history.present, ...history.future].slice(0, maxHistory),
   };
 }
 
@@ -34,7 +34,7 @@ export function redo<T>(history: History<T>): History<T> {
 
   const next = history.future[0];
   return {
-    past: [...history.past, history.present].slice(-MAX_HISTORY),
+    past: [...history.past, history.present].slice(-maxHistory),
     present: next,
     future: history.future.slice(1),
   };

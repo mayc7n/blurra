@@ -1,8 +1,9 @@
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as Haptics from "expo-haptics";
 import { useState } from "react";
 import {
-  Alert,
+  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,6 +13,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppTheme } from "../../design-system/ThemeProvider";
+import { capturePhoto, pickPhoto } from "../../services/media/mediaService";
+import { useEditorStore } from "../../store/editorStore";
 
 type ActionButtonProps = {
   label: string;
@@ -58,11 +61,30 @@ export function HomeScreen() {
   const theme = useAppTheme();
   const colorScheme = useColorScheme();
   const router = useRouter();
+  const startSession = useEditorStore((state) => state.startSession);
   const [notice, setNotice] = useState("Tudo fica no seu dispositivo.");
+  const [busy, setBusy] = useState(false);
 
-  const showComingSoon = (label: string) => {
-    setNotice(`${label} estará disponível no próximo passo.`);
-    Alert.alert("Estamos preparando o editor", `${label} será ativado quando a foto for selecionada.`);
+  const openEditor = async (result: Awaited<ReturnType<typeof pickPhoto>>) => {
+    if (result.kind === "photo") {
+      startSession({ uri: result.uri, width: result.width, height: result.height });
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      router.push({ pathname: "/editor/[photoId]", params: { photoId: encodeURIComponent(result.uri) } });
+      return;
+    }
+
+    if (result.kind === "cancelled") setNotice("Nenhuma foto selecionada.");
+    if (result.kind === "permission-denied") setNotice("Permissão de fotos negada. Você pode liberar o acesso nos ajustes.");
+    if (result.kind === "error") setNotice(result.message);
+  };
+
+  const handleMediaAction = async (capture: boolean) => {
+    if (busy) return;
+    setBusy(true);
+    setNotice("Preparando sua foto…");
+    const result = capture ? await capturePhoto() : await pickPhoto();
+    await openEditor(result);
+    setBusy(false);
   };
 
   return (
@@ -95,21 +117,21 @@ export function HomeScreen() {
         <View style={styles.actions}>
           <ActionButton
             label="Escolher foto"
-            detail="Da sua galeria"
+            detail={busy ? "Abrindo…" : "Da sua galeria"}
             icon="＋"
             primary
-            onPress={() => showComingSoon("Escolher foto")}
+            onPress={() => handleMediaAction(false)}
           />
           <ActionButton
             label="Tirar foto"
-            detail="Usar a câmera"
+            detail={busy ? "Aguarde…" : "Usar a câmera"}
             icon="◉"
-            onPress={() => showComingSoon("Tirar foto")}
+            onPress={() => handleMediaAction(true)}
           />
         </View>
 
         <View style={[styles.notice, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
-          <Text style={styles.noticeIcon}>✦</Text>
+          {busy ? <ActivityIndicator color={theme.colors.accent} style={styles.noticeIcon} /> : <Text style={styles.noticeIcon}>✦</Text>}
           <Text style={[styles.noticeText, { color: theme.colors.muted }]}>{notice}</Text>
         </View>
 
@@ -125,7 +147,7 @@ export function HomeScreen() {
               key={item}
               accessibilityRole="button"
               accessibilityLabel={`Preset ${item}`}
-              onPress={() => showComingSoon(`Preset ${item}`)}
+              onPress={() => router.push("/presets")}
               style={[styles.preset, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
             >
               <View style={[styles.presetSwatch, { backgroundColor: index === 1 ? theme.colors.accent : theme.colors.accentSoft }]}>
