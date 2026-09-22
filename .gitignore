@@ -1,5 +1,6 @@
 .codex/
 .superpowers/
+.worktrees/
 
 # Private agent, planning, and workspace instructions.
 docs/superpowers/
