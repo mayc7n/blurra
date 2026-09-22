@@ -1,0 +1,43 @@
+.codex/
+
+# Private agent, planning, and workspace instructions.
+docs/superpowers/
+docs/internal/
+docs/process/
+docs/_private/
+.agents/
+.claude/
+.cursor/
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+CHECKPOINT.md
+PLAN.md
+TODO.md
+prompts/
+scratch/
+notes/
+
+# Local editor and machine-specific configuration.
+.vscode/
+.idea/
+.DS_Store
+*.local
+*.local.*
+*.prompt.md
+*.bak
+*.tmp
+
+.expo/
+node_modules/
+dist/
+web-build/
+coverage/
+*.log
+.env
+.env.*
+!.env.example
+
+# Generated native projects; commit only when native customization is intentional.
+android/
+ios/
