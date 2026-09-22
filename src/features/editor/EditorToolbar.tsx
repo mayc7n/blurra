@@ -58,25 +58,27 @@ export function EditorToolbar({ tool, canUndo, canRedo, isBeforeAfter, onToolCha
         <ToolButton label="Pixelar" active={tool === "pixelate"} onPress={() => onToolChange("pixelate")} />
       </View>
       <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
-      <IconButton label="Desfazer" icon="↶" disabled={!canUndo} onPress={onUndo} />
-      <IconButton label="Refazer" icon="↷" disabled={!canRedo} onPress={onRedo} />
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={isBeforeAfter ? "Ver edição" : "Ver original"}
-        accessibilityState={{ selected: isBeforeAfter }}
-        onPress={onBeforeAfter}
-        style={styles.compareButton}
-      >
-        <Text style={[styles.compareText, { color: theme.colors.foreground }]}>{isBeforeAfter ? "Edição" : "Antes"}</Text>
-      </Pressable>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Exportar foto"
-        onPress={onExport}
-        style={[styles.exportButton, { backgroundColor: theme.colors.accent }]}
-      >
-        <Text style={styles.exportText}>Exportar</Text>
-      </Pressable>
+      <View style={styles.actions}>
+        <IconButton label="Desfazer" icon="↶" disabled={!canUndo} onPress={onUndo} />
+        <IconButton label="Refazer" icon="↷" disabled={!canRedo} onPress={onRedo} />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={isBeforeAfter ? "Ver edição" : "Ver original"}
+          accessibilityState={{ selected: isBeforeAfter }}
+          onPress={onBeforeAfter}
+          style={styles.compareButton}
+        >
+          <Text style={[styles.compareText, { color: theme.colors.foreground }]}>{isBeforeAfter ? "Edição" : "Antes"}</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Exportar foto"
+          onPress={onExport}
+          style={[styles.exportButton, { backgroundColor: theme.colors.accent }]}
+        >
+          <Text style={styles.exportText}>Exportar</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -84,13 +86,14 @@ export function EditorToolbar({ tool, canUndo, canRedo, isBeforeAfter, onToolCha
 const styles = StyleSheet.create({
   container: { borderTopWidth: 1, paddingHorizontal: 10, paddingTop: 10, paddingBottom: 8, gap: 8 },
   tools: { flexDirection: "row", justifyContent: "center", gap: 8 },
+  actions: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 4 },
   toolButton: { minHeight: 50, minWidth: 86, borderRadius: 14, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 },
   toolIcon: { fontSize: 20, lineHeight: 22 },
   toolLabel: { fontSize: 11, fontWeight: "700", marginTop: 3 },
   divider: { height: 1, marginHorizontal: 4 },
-  iconButton: { position: "absolute", top: 62, width: 40, height: 42, alignItems: "center", justifyContent: "center" },
-  compareButton: { position: "absolute", top: 62, right: 96, minHeight: 42, justifyContent: "center", paddingHorizontal: 4 },
+  iconButton: { width: 40, height: 42, alignItems: "center", justifyContent: "center" },
+  compareButton: { minHeight: 42, justifyContent: "center", paddingHorizontal: 4 },
   compareText: { fontSize: 12, fontWeight: "700" },
-  exportButton: { position: "absolute", top: 60, right: 10, minHeight: 44, borderRadius: 15, paddingHorizontal: 15, justifyContent: "center" },
+  exportButton: { minHeight: 44, borderRadius: 15, paddingHorizontal: 15, justifyContent: "center" },
   exportText: { color: "#231512", fontSize: 13, fontWeight: "800" },
 });

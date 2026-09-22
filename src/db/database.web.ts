@@ -26,7 +26,8 @@ let isSeeded = false;
 
 export async function getPresetRepository() {
   if (!isSeeded) {
-    await Promise.all(starterPresets.map((preset) => webRepository.save(preset)));
+    const existingIds = new Set((await webRepository.list()).map((preset) => preset.id));
+    await Promise.all(starterPresets.filter((preset) => !existingIds.has(preset.id)).map((preset) => webRepository.save(preset)));
     isSeeded = true;
   }
   return webRepository;

@@ -23,8 +23,7 @@ export async function getDatabase(): Promise<SQLiteDatabase> {
 export async function getPresetRepository() {
   const database = await getDatabase();
   const repository = createPresetRepository(database as unknown as PresetDatabase);
-  if ((await repository.list()).length === 0) {
-    await Promise.all(starterPresets.map((preset) => repository.save(preset)));
-  }
+  const existingIds = new Set((await repository.list()).map((preset) => preset.id));
+  await Promise.all(starterPresets.filter((preset) => !existingIds.has(preset.id)).map((preset) => repository.save(preset)));
   return repository;
 }
