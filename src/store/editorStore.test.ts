@@ -1,10 +1,10 @@
 import { emptyEditorSession } from "../domain/editor/types";
 import { useEditorStore } from "./editorStore";
 
-const stroke = {
-  id: "store-stroke",
-  points: [{ x: 0.5, y: 0.5 }],
-  size: 0.2,
+const operation = {
+  id: "store-operation",
+  blurType: "gaussian" as const,
+  shape: { kind: "circle" as const, center: { x: 0.5, y: 0.5 }, radius: 0.2 },
   feather: 0.3,
   intensity: 0.7,
 };
@@ -24,16 +24,16 @@ describe("editor store", () => {
     });
   });
 
-  it("adds a stroke and delegates undo/redo to the domain reducer", () => {
+  it("adds an operation and delegates undo/redo to the domain reducer", () => {
     useEditorStore.getState().startSession({ uri: "file:///photo.jpg", width: 1200, height: 900 });
-    useEditorStore.getState().addStroke(stroke);
-    expect(useEditorStore.getState().history.present.strokes).toHaveLength(1);
+    useEditorStore.getState().addOperation(operation);
+    expect(useEditorStore.getState().history.present.operations).toHaveLength(1);
 
     useEditorStore.getState().undo();
-    expect(useEditorStore.getState().history.present.strokes).toHaveLength(0);
+    expect(useEditorStore.getState().history.present.operations).toHaveLength(0);
 
     useEditorStore.getState().redo();
-    expect(useEditorStore.getState().history.present.strokes).toHaveLength(1);
+    expect(useEditorStore.getState().history.present.operations).toHaveLength(1);
   });
 
   it("clears source references when a session ends", () => {

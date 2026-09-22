@@ -2,45 +2,38 @@ import { emptyEditorSession } from "./types";
 import { createHistory } from "./history";
 import { editorReducer } from "./reducer";
 
-const stroke = {
-  id: "stroke-1",
-  points: [{ x: 0.2, y: 0.3 }],
-  size: 0.15,
-  feather: 0.4,
-  intensity: 0.8,
-};
-
-const circularBlur = {
-  center: { x: 0.52, y: 0.44 },
-  radius: 0.2,
+const operation = {
+  id: "operation-1",
+  blurType: "gaussian" as const,
+  shape: { kind: "circle" as const, center: { x: 0.52, y: 0.44 }, radius: 0.2 },
   feather: 0.35,
   intensity: 0.8,
 };
 
 describe("editor reducer", () => {
-  it("adds a stroke, undoes it, and redoes it", () => {
+  it("adds an operation, undoes it, and redoes it", () => {
     let state = createHistory(emptyEditorSession);
-    state = editorReducer(state, { type: "addStroke", stroke });
-    expect(state.present.strokes).toEqual([stroke]);
+    state = editorReducer(state, { type: "addOperation", operation });
+    expect(state.present.operations).toEqual([operation]);
 
     state = editorReducer(state, { type: "undo" });
-    expect(state.present.strokes).toEqual([]);
+    expect(state.present.operations).toEqual([]);
 
     state = editorReducer(state, { type: "redo" });
-    expect(state.present.strokes).toEqual([stroke]);
+    expect(state.present.operations).toEqual([operation]);
   });
 
-  it("clears the redo branch after a new stroke", () => {
+  it("clears the redo branch after a new operation", () => {
     let state = createHistory(emptyEditorSession);
-    state = editorReducer(state, { type: "addStroke", stroke });
+    state = editorReducer(state, { type: "addOperation", operation });
     state = editorReducer(state, { type: "undo" });
     state = editorReducer(state, {
-      type: "addStroke",
-      stroke: { ...stroke, id: "stroke-2" },
+      type: "addOperation",
+      operation: { ...operation, id: "operation-2" },
     });
 
     expect(state.future).toEqual([]);
-    expect(state.present.strokes[0].id).toBe("stroke-2");
+    expect(state.present.operations[0].id).toBe("operation-2");
   });
 
   it("changes intensity immutably", () => {
@@ -52,14 +45,16 @@ describe("editor reducer", () => {
     expect(changed.present).not.toBe(state.present);
   });
 
-  it("stores and clears one normalized circular blur layer", () => {
+  it("stores and removes one normalized blur operation", () => {
     let state = createHistory(emptyEditorSession);
-    state = editorReducer(state, { type: "setCircularBlur", circularBlur });
+    state = editorReducer(state, { type: "addOperation", operation });
 
-    expect(state.present.circularBlur).toEqual(circularBlur);
+    expect(state.present.operations).toEqual([operation]);
+    expect(state.present.selectedOperationId).toBe("operation-1");
 
-    state = editorReducer(state, { type: "clearCircularBlur" });
+    state = editorReducer(state, { type: "removeOperation", operationId: "operation-1" });
 
-    expect(state.present.circularBlur).toBeNull();
+    expect(state.present.operations).toEqual([]);
+    expect(state.present.selectedOperationId).toBeNull();
   });
 });

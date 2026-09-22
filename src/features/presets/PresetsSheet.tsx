@@ -44,7 +44,7 @@ export function PresetsSheet({ visible, session, onClose, onApply }: PresetsShee
       const preset: Preset = {
         id: `custom-${Date.now()}`,
         name,
-        effectKind: session.tool,
+        effectKind: "blur",
         intensity: session.intensity,
         brushSize: session.brushSize,
         feather: session.feather,

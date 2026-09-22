@@ -1,14 +1,18 @@
 import Slider from "@react-native-community/slider";
 import { StyleSheet, Text, View } from "react-native";
 import { useAppTheme } from "../../design-system/ThemeProvider";
+import { BlurShapeKind } from "../../domain/editor/types";
+import { ShapeControls } from "./ShapeControls";
 
 type BrushControlsProps = {
   intensity: number;
   brushSize: number;
   feather: number;
+  shapeKind: BlurShapeKind;
   onIntensityChange: (value: number) => void;
   onBrushSizeChange: (value: number) => void;
   onFeatherChange: (value: number) => void;
+  onShapeKindChange: (shapeKind: BlurShapeKind) => void;
 };
 
 function ControlSlider({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
@@ -35,10 +39,11 @@ function ControlSlider({ label, value, onChange }: { label: string; value: numbe
   );
 }
 
-export function BrushControls({ intensity, brushSize, feather, onIntensityChange, onBrushSizeChange, onFeatherChange }: BrushControlsProps) {
+export function BrushControls({ intensity, brushSize, feather, shapeKind, onIntensityChange, onBrushSizeChange, onFeatherChange, onShapeKindChange }: BrushControlsProps) {
   const theme = useAppTheme();
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
+      <ShapeControls value={shapeKind} onChange={onShapeKindChange} />
       <ControlSlider label="Intensidade" value={intensity} onChange={onIntensityChange} />
       <ControlSlider label="Raio do blur" value={brushSize} onChange={onBrushSizeChange} />
       <ControlSlider label="Suavidade" value={feather} onChange={onFeatherChange} />

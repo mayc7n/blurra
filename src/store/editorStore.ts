@@ -1,18 +1,19 @@
 import { create } from "zustand";
 import { createHistory } from "../domain/editor/history";
 import { editorReducer, EditorAction, EditorHistory } from "../domain/editor/reducer";
-import { BrushStroke, CircularBlur, EditorTool, emptyEditorSession } from "../domain/editor/types";
+import { BlurOperation, BlurShapeKind, emptyEditorSession } from "../domain/editor/types";
 
 type PhotoSource = { uri: string; width: number; height: number };
 
 export type EditorStore = {
   history: EditorHistory;
   startSession: (source: PhotoSource) => void;
-  addStroke: (stroke: BrushStroke) => void;
-  setCircularBlur: (circularBlur: CircularBlur) => void;
-  clearCircularBlur: () => void;
+  addOperation: (operation: BlurOperation) => void;
+  removeOperation: (operationId: string) => void;
+  updateOperation: (operationId: string, changes: Partial<Pick<BlurOperation, "shape" | "feather" | "intensity">>) => void;
+  setActiveShapeKind: (shapeKind: BlurShapeKind) => void;
+  selectOperation: (operationId: string | null) => void;
   dispatch: (action: EditorAction) => void;
-  setTool: (tool: EditorTool) => void;
   setIntensity: (intensity: number) => void;
   setBrushSize: (brushSize: number) => void;
   setFeather: (feather: number) => void;
@@ -29,11 +30,12 @@ export const useEditorStore = create<EditorStore>((set) => {
   return {
     history: initialHistory(),
     startSession: (source) => dispatch({ type: "setSource", sourceUri: source.uri, sourceWidth: source.width, sourceHeight: source.height }),
-    addStroke: (stroke) => dispatch({ type: "addStroke", stroke }),
-    setCircularBlur: (circularBlur) => dispatch({ type: "setCircularBlur", circularBlur }),
-    clearCircularBlur: () => dispatch({ type: "clearCircularBlur" }),
+    addOperation: (operation) => dispatch({ type: "addOperation", operation }),
+    removeOperation: (operationId) => dispatch({ type: "removeOperation", operationId }),
+    updateOperation: (operationId, changes) => dispatch({ type: "updateOperation", operationId, changes }),
+    setActiveShapeKind: (shapeKind) => dispatch({ type: "setActiveShapeKind", shapeKind }),
+    selectOperation: (operationId) => dispatch({ type: "selectOperation", operationId }),
     dispatch,
-    setTool: (tool) => dispatch({ type: "setTool", tool }),
     setIntensity: (intensity) => dispatch({ type: "setIntensity", intensity }),
     setBrushSize: (brushSize) => dispatch({ type: "setBrushSize", brushSize }),
     setFeather: (feather) => dispatch({ type: "setFeather", feather }),

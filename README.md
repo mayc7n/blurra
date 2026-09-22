@@ -6,7 +6,7 @@ imagens para um servidor.
 ## Recursos atuais
 
 - Importação pela galeria ou câmera.
-- Blur circular com preview em tempo real.
+- Blur em círculo, quadrado, retângulo, triângulo, polígono e lasso com preview em tempo real.
 - Ajuste de intensidade, raio e suavidade.
 - Zoom, pan, undo/redo e comparação antes/depois.
 - Exportação local em PNG ou JPEG.

@@ -1,11 +1,12 @@
 import { commit, History, redo, undo } from "./history";
-import { BrushStroke, CircularBlur, EditorSession, EditorTool, emptyEditorSession } from "./types";
+import { BlurOperation, BlurShapeKind, EditorSession, emptyEditorSession } from "./types";
 
 export type EditorAction =
-  | { type: "addStroke"; stroke: BrushStroke }
-  | { type: "setCircularBlur"; circularBlur: CircularBlur }
-  | { type: "clearCircularBlur" }
-  | { type: "setTool"; tool: EditorTool }
+  | { type: "addOperation"; operation: BlurOperation }
+  | { type: "removeOperation"; operationId: string }
+  | { type: "updateOperation"; operationId: string; changes: Partial<Pick<BlurOperation, "shape" | "feather" | "intensity">> }
+  | { type: "setActiveShapeKind"; shapeKind: BlurShapeKind }
+  | { type: "selectOperation"; operationId: string | null }
   | { type: "setIntensity"; intensity: number }
   | { type: "setBrushSize"; brushSize: number }
   | { type: "setFeather"; feather: number }
@@ -23,14 +24,33 @@ function bounded(value: number): number {
 
 export function editorReducer(state: EditorHistory, action: EditorAction): EditorHistory {
   switch (action.type) {
-    case "addStroke":
-      return commit(state, { ...state.present, strokes: [...state.present.strokes, action.stroke] });
-    case "setCircularBlur":
-      return commit(state, { ...state.present, circularBlur: action.circularBlur });
-    case "clearCircularBlur":
-      return commit(state, { ...state.present, circularBlur: null });
-    case "setTool":
-      return commit(state, { ...state.present, tool: action.tool });
+    case "addOperation":
+      return commit(state, {
+        ...state.present,
+        operations: [...state.present.operations, action.operation],
+        selectedOperationId: action.operation.id,
+      });
+    case "removeOperation": {
+      const operations = state.present.operations.filter((operation) => operation.id !== action.operationId);
+      return commit(state, {
+        ...state.present,
+        operations,
+        selectedOperationId: state.present.selectedOperationId === action.operationId
+          ? operations.length > 0 ? operations[operations.length - 1].id : null
+          : state.present.selectedOperationId,
+      });
+    }
+    case "updateOperation":
+      return commit(state, {
+        ...state.present,
+        operations: state.present.operations.map((operation) =>
+          operation.id === action.operationId ? { ...operation, ...action.changes } : operation,
+        ),
+      });
+    case "setActiveShapeKind":
+      return { ...state, present: { ...state.present, activeShapeKind: action.shapeKind } };
+    case "selectOperation":
+      return { ...state, present: { ...state.present, selectedOperationId: action.operationId } };
     case "setIntensity":
       return commit(state, { ...state.present, intensity: bounded(action.intensity) });
     case "setBrushSize":

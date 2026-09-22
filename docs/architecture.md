@@ -14,9 +14,9 @@ Expo Router
           -> React Native Skia preview/export
 ```
 
-Photo URIs and dimensions remain local. Brush strokes are normalized to source
-image coordinates, which makes them stable across safe areas, orientation,
-zoom, device density, and export resolution.
+Photo URIs and dimensions remain local. Blur operations and their masks are
+normalized to source-image coordinates, which makes them stable across safe
+areas, orientation, zoom, device density, and export resolution.
 
 ## Main boundaries
 
@@ -37,10 +37,11 @@ image processing.
 
 ## POC rendering contract
 
-The first vertical slice keeps one circular blur layer in normalized source
-coordinates. The canvas draws the original image, a Skia Gaussian-blurred copy,
-and an alpha circle mask. Gesture updates stay on the UI worklet path; the
-session receives the normalized result when the gesture ends.
+The first vertical slice stores Gaussian blur operations in normalized source
+coordinates. The canvas draws the original image, one Skia-blurred copy per
+operation, and a geometry-specific alpha mask through the same render pipeline.
+Gesture updates stay on the UI worklet path; the session receives the normalized
+operation when the gesture ends.
 
 The POC export snapshots the rendered working-size canvas. This validates local
 encoding and sharing without pretending to solve full-resolution export. The

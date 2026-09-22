@@ -7,6 +7,7 @@ import { Alert, Pressable, StyleSheet, Text, useColorScheme, useWindowDimensions
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppTheme } from "../../design-system/ThemeProvider";
 import { useEditorStore } from "../../store/editorStore";
+import { getShapeSize, resizeBlurShape } from "../../domain/editor/shapes";
 import { exportRenderedImage, ExportFormat, ExportedFile, saveExportToLibrary, shareExport } from "../../services/export/exportService";
 import { BrushControls } from "./BrushControls";
 import { EditorCanvas } from "./EditorCanvas";
@@ -25,15 +26,29 @@ export function EditorScreen() {
   const setIntensity = useEditorStore((state) => state.setIntensity);
   const setBrushSize = useEditorStore((state) => state.setBrushSize);
   const setFeather = useEditorStore((state) => state.setFeather);
-  const setCircularBlur = useEditorStore((state) => state.setCircularBlur);
+  const addOperation = useEditorStore((state) => state.addOperation);
+  const updateOperation = useEditorStore((state) => state.updateOperation);
+  const setActiveShapeKind = useEditorStore((state) => state.setActiveShapeKind);
   const undo = useEditorStore((state) => state.undo);
   const redo = useEditorStore((state) => state.redo);
   const dispatch = useEditorStore((state) => state.dispatch);
   const session = history.present;
 
-  const handleSetCircularBlur = useCallback(
-    (circularBlur: Parameters<typeof setCircularBlur>[0]) => setCircularBlur(circularBlur),
-    [setCircularBlur],
+  const selectedOperation = session.operations.find((operation) => operation.id === session.selectedOperationId);
+  const handleAddOperation = useCallback((operation: Parameters<typeof addOperation>[0]) => addOperation(operation), [addOperation]);
+  const handleIntensityChange = useCallback(
+    (intensity: number) => selectedOperation ? updateOperation(selectedOperation.id, { intensity }) : setIntensity(intensity),
+    [selectedOperation, setIntensity, updateOperation],
+  );
+  const handleBrushSizeChange = useCallback(
+    (size: number) => selectedOperation
+      ? updateOperation(selectedOperation.id, { shape: resizeBlurShape(selectedOperation.shape, size) })
+      : setBrushSize(size),
+    [selectedOperation, setBrushSize, updateOperation],
+  );
+  const handleFeatherChange = useCallback(
+    (feather: number) => selectedOperation ? updateOperation(selectedOperation.id, { feather }) : setFeather(feather),
+    [selectedOperation, setFeather, updateOperation],
   );
 
   const handleExport = useCallback(async (format: ExportFormat): Promise<ExportedFile> => {
@@ -77,15 +92,17 @@ export function EditorScreen() {
         </View>
       </View>
       <View ref={canvasRef} collapsable={false} style={styles.canvasContainer}>
-        <EditorCanvas session={session} onSetCircularBlur={handleSetCircularBlur} showGuides={!isExporting} />
+        <EditorCanvas session={session} onAddOperation={handleAddOperation} showGuides={!isExporting} />
       </View>
       <BrushControls
-        intensity={session.intensity}
-        brushSize={session.brushSize}
-        feather={session.feather}
-        onIntensityChange={setIntensity}
-        onBrushSizeChange={setBrushSize}
-        onFeatherChange={setFeather}
+        intensity={selectedOperation?.intensity ?? session.intensity}
+        brushSize={selectedOperation ? getShapeSize(selectedOperation.shape) : session.brushSize}
+        feather={selectedOperation?.feather ?? session.feather}
+        shapeKind={session.activeShapeKind}
+        onShapeKindChange={setActiveShapeKind}
+        onIntensityChange={handleIntensityChange}
+        onBrushSizeChange={handleBrushSizeChange}
+        onFeatherChange={handleFeatherChange}
       />
       <EditorToolbar
         canUndo={history.past.length > 0}
