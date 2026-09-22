@@ -34,3 +34,27 @@ flow. Export never clears or mutates the editor session.
 
 The MVP deliberately omits accounts, cloud sync, analytics, and server-side
 image processing.
+
+## POC rendering contract
+
+The first vertical slice keeps one circular blur layer in normalized source
+coordinates. The canvas draws the original image, a Skia Gaussian-blurred copy,
+and an alpha circle mask. Gesture updates stay on the UI worklet path; the
+session receives the normalized result when the gesture ends.
+
+The POC export snapshots the rendered working-size canvas. This validates local
+encoding and sharing without pretending to solve full-resolution export. The
+future native `ExportEngine` will replay the same session against the original
+bitmap using Core Image/Metal on iOS and a native Android GPU/bitmap pipeline.
+
+## Native boundary planned later
+
+```text
+React Native UI
+  ├── PreviewEngine: React Native Skia
+  ├── SubjectSegmenter: Vision / ML Kit
+  └── ExportEngine: Core Image/Metal / Android native GPU
+```
+
+Only the first boundary is active in this POC. `SubjectSegmenter` and
+full-resolution `ExportEngine` remain interfaces, not fake implementations.

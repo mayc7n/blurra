@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { createHistory } from "../domain/editor/history";
 import { editorReducer, EditorAction, EditorHistory } from "../domain/editor/reducer";
-import { BrushStroke, EditorTool, emptyEditorSession } from "../domain/editor/types";
+import { BrushStroke, CircularBlur, EditorTool, emptyEditorSession } from "../domain/editor/types";
 
 type PhotoSource = { uri: string; width: number; height: number };
 
@@ -9,6 +9,8 @@ export type EditorStore = {
   history: EditorHistory;
   startSession: (source: PhotoSource) => void;
   addStroke: (stroke: BrushStroke) => void;
+  setCircularBlur: (circularBlur: CircularBlur) => void;
+  clearCircularBlur: () => void;
   dispatch: (action: EditorAction) => void;
   setTool: (tool: EditorTool) => void;
   setIntensity: (intensity: number) => void;
@@ -28,6 +30,8 @@ export const useEditorStore = create<EditorStore>((set) => {
     history: initialHistory(),
     startSession: (source) => dispatch({ type: "setSource", sourceUri: source.uri, sourceWidth: source.width, sourceHeight: source.height }),
     addStroke: (stroke) => dispatch({ type: "addStroke", stroke }),
+    setCircularBlur: (circularBlur) => dispatch({ type: "setCircularBlur", circularBlur }),
+    clearCircularBlur: () => dispatch({ type: "clearCircularBlur" }),
     dispatch,
     setTool: (tool) => dispatch({ type: "setTool", tool }),
     setIntensity: (intensity) => dispatch({ type: "setIntensity", intensity }),

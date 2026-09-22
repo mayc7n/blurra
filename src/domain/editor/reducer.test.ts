@@ -10,6 +10,13 @@ const stroke = {
   intensity: 0.8,
 };
 
+const circularBlur = {
+  center: { x: 0.52, y: 0.44 },
+  radius: 0.2,
+  feather: 0.35,
+  intensity: 0.8,
+};
+
 describe("editor reducer", () => {
   it("adds a stroke, undoes it, and redoes it", () => {
     let state = createHistory(emptyEditorSession);
@@ -43,5 +50,16 @@ describe("editor reducer", () => {
     expect(changed.present.intensity).toBe(0.2);
     expect(state.present.intensity).toBe(emptyEditorSession.intensity);
     expect(changed.present).not.toBe(state.present);
+  });
+
+  it("stores and clears one normalized circular blur layer", () => {
+    let state = createHistory(emptyEditorSession);
+    state = editorReducer(state, { type: "setCircularBlur", circularBlur });
+
+    expect(state.present.circularBlur).toEqual(circularBlur);
+
+    state = editorReducer(state, { type: "clearCircularBlur" });
+
+    expect(state.present.circularBlur).toBeNull();
   });
 });

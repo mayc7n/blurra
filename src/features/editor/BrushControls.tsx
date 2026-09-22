@@ -40,7 +40,7 @@ export function BrushControls({ intensity, brushSize, feather, onIntensityChange
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
       <ControlSlider label="Intensidade" value={intensity} onChange={onIntensityChange} />
-      <ControlSlider label="Tamanho do pincel" value={brushSize} onChange={onBrushSizeChange} />
+      <ControlSlider label="Raio do blur" value={brushSize} onChange={onBrushSizeChange} />
       <ControlSlider label="Suavidade" value={feather} onChange={onFeatherChange} />
     </View>
   );

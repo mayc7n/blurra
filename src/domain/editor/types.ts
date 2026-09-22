@@ -10,6 +10,13 @@ export type BrushStroke = {
   intensity: number;
 };
 
+export type CircularBlur = {
+  center: NormalizedPoint;
+  radius: number;
+  feather: number;
+  intensity: number;
+};
+
 export type EffectLayer = {
   id: string;
   tool: EditorTool;
@@ -26,6 +33,7 @@ export type EditorSession = {
   brushSize: number;
   feather: number;
   strokes: BrushStroke[];
+  circularBlur: CircularBlur | null;
   isBeforeAfter: boolean;
 };
 
@@ -38,5 +46,6 @@ export const emptyEditorSession: EditorSession = {
   brushSize: 0.16,
   feather: 0.35,
   strokes: [],
+  circularBlur: null,
   isBeforeAfter: false,
 };

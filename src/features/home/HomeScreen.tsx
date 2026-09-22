@@ -135,28 +135,6 @@ export function HomeScreen() {
           <Text style={[styles.noticeText, { color: theme.colors.muted }]}>{notice}</Text>
         </View>
 
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.foreground }]}>Comece rápido</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Ver todos os presets" onPress={() => router.push("/presets")}>
-            <Text style={[styles.seeAll, { color: theme.colors.accent }]}>Ver presets</Text>
-          </Pressable>
-        </View>
-        <View style={styles.presetRow}>
-          {["Retrato", "Detalhe", "Pixel"].map((item, index) => (
-            <Pressable
-              key={item}
-              accessibilityRole="button"
-              accessibilityLabel={`Preset ${item}`}
-              onPress={() => router.push("/presets")}
-              style={[styles.preset, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
-            >
-              <View style={[styles.presetSwatch, { backgroundColor: index === 1 ? theme.colors.accent : theme.colors.accentSoft }]}>
-                <Text style={styles.presetMark}>{index === 2 ? "░" : "◌"}</Text>
-              </View>
-              <Text style={[styles.presetName, { color: theme.colors.foreground }]}>{item}</Text>
-            </Pressable>
-          ))}
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -183,12 +161,4 @@ const styles = StyleSheet.create({
   notice: { minHeight: 48, borderWidth: 1, borderRadius: 16, paddingHorizontal: 14, flexDirection: "row", alignItems: "center" },
   noticeIcon: { fontSize: 18, color: "#FF7058", marginRight: 10 },
   noticeText: { flex: 1, fontSize: 13, lineHeight: 18 },
-  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginBottom: -16 },
-  sectionTitle: { fontSize: 19, fontWeight: "700" },
-  seeAll: { fontSize: 14, fontWeight: "700" },
-  presetRow: { flexDirection: "row", gap: 10 },
-  preset: { flex: 1, borderWidth: 1, borderRadius: 18, padding: 10 },
-  presetSwatch: { aspectRatio: 1, borderRadius: 12, alignItems: "center", justifyContent: "center", marginBottom: 9 },
-  presetMark: { fontSize: 34, color: "#56332C" },
-  presetName: { fontSize: 13, fontWeight: "700", paddingHorizontal: 2, paddingBottom: 2 },
 });

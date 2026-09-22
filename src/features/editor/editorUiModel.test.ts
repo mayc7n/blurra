@@ -9,7 +9,8 @@ describe("editor UI model", () => {
     expect(model.hasPhoto).toBe(false);
     expect(model.canUndo).toBe(false);
     expect(model.canRedo).toBe(false);
-    expect(model.toolbarLabels).toEqual(["Desfocar", "Pixelar", "Intensidade", "Tamanho do pincel"]);
+    expect(model.toolbarLabels).toEqual(["Intensidade", "Raio do blur", "Suavidade"]);
+    expect(model.hasCircularBlur).toBe(false);
   });
 
   it("exposes before/after state and undo availability", () => {
@@ -21,5 +22,23 @@ describe("editor UI model", () => {
     expect(model.canUndo).toBe(true);
     expect(model.canRedo).toBe(true);
     expect(model.beforeAfterLabel).toBe("Ver edição");
+    expect(model.hasCircularBlur).toBe(false);
+  });
+
+  it("reports when the circular blur layer exists", () => {
+    const photo = {
+      ...emptyEditorSession,
+      sourceUri: "file:///photo.jpg",
+      circularBlur: {
+        center: { x: 0.5, y: 0.5 },
+        radius: 0.2,
+        feather: 0.3,
+        intensity: 0.8,
+      },
+    };
+
+    const model = getEditorUiModel({ past: [], present: photo, future: [] });
+
+    expect(model.hasCircularBlur).toBe(true);
   });
 });

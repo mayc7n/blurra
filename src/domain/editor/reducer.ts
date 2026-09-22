@@ -1,8 +1,10 @@
 import { commit, History, redo, undo } from "./history";
-import { BrushStroke, EditorSession, EditorTool, emptyEditorSession } from "./types";
+import { BrushStroke, CircularBlur, EditorSession, EditorTool, emptyEditorSession } from "./types";
 
 export type EditorAction =
   | { type: "addStroke"; stroke: BrushStroke }
+  | { type: "setCircularBlur"; circularBlur: CircularBlur }
+  | { type: "clearCircularBlur" }
   | { type: "setTool"; tool: EditorTool }
   | { type: "setIntensity"; intensity: number }
   | { type: "setBrushSize"; brushSize: number }
@@ -23,6 +25,10 @@ export function editorReducer(state: EditorHistory, action: EditorAction): Edito
   switch (action.type) {
     case "addStroke":
       return commit(state, { ...state.present, strokes: [...state.present.strokes, action.stroke] });
+    case "setCircularBlur":
+      return commit(state, { ...state.present, circularBlur: action.circularBlur });
+    case "clearCircularBlur":
+      return commit(state, { ...state.present, circularBlur: null });
     case "setTool":
       return commit(state, { ...state.present, tool: action.tool });
     case "setIntensity":

@@ -7,13 +7,11 @@ import { Alert, Pressable, StyleSheet, Text, useColorScheme, useWindowDimensions
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppTheme } from "../../design-system/ThemeProvider";
 import { useEditorStore } from "../../store/editorStore";
-import { BrushStroke } from "../../domain/editor/types";
 import { exportRenderedImage, ExportFormat, ExportedFile, saveExportToLibrary, shareExport } from "../../services/export/exportService";
 import { BrushControls } from "./BrushControls";
 import { EditorCanvas } from "./EditorCanvas";
 import { EditorToolbar } from "./EditorToolbar";
 import { ExportSheet } from "../export/ExportSheet";
-import { PresetsSheet } from "../presets/PresetsSheet";
 
 export function EditorScreen() {
   const theme = useAppTheme();
@@ -22,27 +20,35 @@ export function EditorScreen() {
   const { width } = useWindowDimensions();
   const canvasRef = useRef<View>(null);
   const [isExportVisible, setExportVisible] = useState(false);
-  const [isPresetsVisible, setPresetsVisible] = useState(false);
+  const [isExporting, setExporting] = useState(false);
   const history = useEditorStore((state) => state.history);
-  const setTool = useEditorStore((state) => state.setTool);
   const setIntensity = useEditorStore((state) => state.setIntensity);
   const setBrushSize = useEditorStore((state) => state.setBrushSize);
   const setFeather = useEditorStore((state) => state.setFeather);
-  const addStroke = useEditorStore((state) => state.addStroke);
+  const setCircularBlur = useEditorStore((state) => state.setCircularBlur);
   const undo = useEditorStore((state) => state.undo);
   const redo = useEditorStore((state) => state.redo);
   const dispatch = useEditorStore((state) => state.dispatch);
   const session = history.present;
 
-  const handleAddStroke = useCallback((stroke: BrushStroke) => addStroke(stroke), [addStroke]);
+  const handleSetCircularBlur = useCallback(
+    (circularBlur: Parameters<typeof setCircularBlur>[0]) => setCircularBlur(circularBlur),
+    [setCircularBlur],
+  );
 
   const handleExport = useCallback(async (format: ExportFormat): Promise<ExportedFile> => {
     if (!canvasRef.current) throw new Error("Editor indisponível para exportação.");
-    const snapshot = await makeImageFromView(canvasRef);
-    if (!snapshot) throw new Error("Não foi possível preparar a imagem.");
-    const encoded = snapshot.encodeToBase64(format === "png" ? ImageFormat.PNG : ImageFormat.JPEG, format === "png" ? 100 : 92);
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    return exportRenderedImage(() => encoded, format);
+    setExporting(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      const snapshot = await makeImageFromView(canvasRef);
+      if (!snapshot) throw new Error("Não foi possível preparar a imagem.");
+      const encoded = snapshot.encodeToBase64(format === "png" ? ImageFormat.PNG : ImageFormat.JPEG, format === "png" ? 100 : 92);
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      return exportRenderedImage(() => encoded, format);
+    } finally {
+      setExporting(false);
+    }
   }, []);
 
   if (!session.sourceUri) {
@@ -65,16 +71,13 @@ export function EditorScreen() {
         </Pressable>
         <Text style={[styles.headerTitle, { color: theme.colors.foreground, fontSize: width < 360 ? 14 : 16 }]}>Editar foto</Text>
         <View style={styles.headerActions}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Abrir presets" onPress={() => setPresetsVisible(true)} style={styles.presetsButton}>
-            <Text style={[styles.presetsText, { color: theme.colors.accent }]}>Presets</Text>
-          </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel="Ajuda do editor" onPress={() => Alert.alert("Pincel", "Toque e arraste sobre a foto. Use dois dedos para ampliar e mover.")} style={styles.headerButton}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Ajuda do editor" onPress={() => Alert.alert("Blur circular", "Toque ou arraste sobre a foto para posicionar o círculo. Use dois dedos para ampliar e mover.")} style={styles.headerButton}>
             <Text style={[styles.help, { color: theme.colors.foreground, borderColor: theme.colors.border }]}>?</Text>
           </Pressable>
         </View>
       </View>
       <View ref={canvasRef} collapsable={false} style={styles.canvasContainer}>
-        <EditorCanvas session={session} onAddStroke={handleAddStroke} />
+        <EditorCanvas session={session} onSetCircularBlur={handleSetCircularBlur} showGuides={!isExporting} />
       </View>
       <BrushControls
         intensity={session.intensity}
@@ -85,11 +88,9 @@ export function EditorScreen() {
         onFeatherChange={setFeather}
       />
       <EditorToolbar
-        tool={session.tool}
         canUndo={history.past.length > 0}
         canRedo={history.future.length > 0}
         isBeforeAfter={session.isBeforeAfter}
-        onToolChange={setTool}
         onUndo={undo}
         onRedo={redo}
         onBeforeAfter={() => dispatch({ type: "toggleBeforeAfter" })}
@@ -101,18 +102,6 @@ export function EditorScreen() {
         onExport={handleExport}
         onShare={shareExport}
         onSave={saveExportToLibrary}
-      />
-      <PresetsSheet
-        visible={isPresetsVisible}
-        session={session}
-        onClose={() => setPresetsVisible(false)}
-        onApply={(preset) => {
-          setTool(preset.effectKind);
-          setIntensity(preset.intensity);
-          setBrushSize(preset.brushSize);
-          setFeather(preset.feather);
-          setPresetsVisible(false);
-        }}
       />
     </SafeAreaView>
   );
@@ -126,8 +115,6 @@ const styles = StyleSheet.create({
   help: { width: 22, height: 22, borderWidth: 1, borderRadius: 11, textAlign: "center", lineHeight: 20, fontWeight: "800" },
   headerTitle: { fontSize: 16, fontWeight: "800" },
   headerActions: { flexDirection: "row", alignItems: "center" },
-  presetsButton: { minHeight: 44, justifyContent: "center", paddingHorizontal: 7 },
-  presetsText: { fontSize: 12, fontWeight: "800" },
   canvasContainer: { flex: 1, minHeight: 220 },
   emptyTitle: { fontSize: 22, fontWeight: "800", padding: 24 },
   backText: { fontSize: 16, fontWeight: "700", paddingHorizontal: 24 },

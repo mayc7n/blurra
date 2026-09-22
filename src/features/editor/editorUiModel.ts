@@ -5,7 +5,8 @@ export function getEditorUiModel(history: EditorHistory) {
     hasPhoto: Boolean(history.present.sourceUri),
     canUndo: history.past.length > 0,
     canRedo: history.future.length > 0,
+    hasCircularBlur: history.present.circularBlur !== null,
     beforeAfterLabel: history.present.isBeforeAfter ? "Ver edição" : "Ver original",
-    toolbarLabels: ["Desfocar", "Pixelar", "Intensidade", "Tamanho do pincel"],
+    toolbarLabels: ["Intensidade", "Raio do blur", "Suavidade"],
   } as const;
 }
