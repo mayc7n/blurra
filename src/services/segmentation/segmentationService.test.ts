@@ -1,4 +1,4 @@
-import { createBackgroundBlurOperation, isUsableSegmentationResult, SegmentationResult } from "./segmentationService";
+import { createBackgroundBlurOperation, hasSegmentationOperation, isUsableSegmentationResult, SegmentationResult } from "./segmentationService";
 
 jest.mock("../../../modules/blurra-subject-segmentation", () => ({ default: { segment: jest.fn() } }));
 
@@ -32,5 +32,12 @@ describe("segmentation service", () => {
     expect(isUsableSegmentationResult({ ...result, maskUri: "   " })).toBe(false);
     expect(isUsableSegmentationResult({ ...result, confidence: Number.POSITIVE_INFINITY })).toBe(false);
     expect(isUsableSegmentationResult({ ...result, foregroundCoverage: Number.NaN })).toBe(false);
+  });
+
+  it("detects an existing automatic background operation", () => {
+    const operation = createBackgroundBlurOperation(result, 0.35, 0.7);
+
+    expect(hasSegmentationOperation([])).toBe(false);
+    expect(hasSegmentationOperation([operation])).toBe(true);
   });
 });

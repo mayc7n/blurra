@@ -41,6 +41,10 @@ export function createBackgroundBlurOperation(result: SegmentationResult, feathe
   };
 }
 
+export function hasSegmentationOperation(operations: BlurOperation[]): boolean {
+  return operations.some((operation) => operation.mask.kind === "segmentation");
+}
+
 export async function segmentPerson(sourceUri: string): Promise<SegmentationResult> {
   return nativeSegmentationModule.segment(sourceUri);
 }

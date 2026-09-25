@@ -8,7 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppTheme } from "../../design-system/ThemeProvider";
 import { useEditorStore } from "../../store/editorStore";
 import { getShapeSize, resizeBlurShape } from "../../domain/editor/shapes";
-import { createBackgroundBlurOperation, isUsableSegmentationResult, segmentPerson } from "../../services/segmentation/segmentationService";
+import { createBackgroundBlurOperation, hasSegmentationOperation, isUsableSegmentationResult, segmentPerson } from "../../services/segmentation/segmentationService";
 import { exportRenderedImage, ExportFormat, ExportedFile, saveExportToLibrary, shareExport } from "../../services/export/exportService";
 import { BrushControls } from "./BrushControls";
 import { EditorCanvas } from "./EditorCanvas";
@@ -58,6 +58,10 @@ export function EditorScreen() {
 
   const handleSegmentBackground = async () => {
     if (!session.sourceUri || isSegmenting) return;
+    if (hasSegmentationOperation(session.operations)) {
+      setSegmentationStatus("O fundo já está selecionado. Ajuste a intensidade e a suavidade abaixo.");
+      return;
+    }
     setSegmenting(true);
     setSegmentationStatus(null);
     try {
