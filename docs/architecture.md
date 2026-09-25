@@ -22,11 +22,13 @@ areas, orientation, zoom, device density, and export resolution.
 
 - `src/domain/editor`: pure types, coordinate transforms, history, and reducer.
 - `src/features/editor`: canvas, gestures, toolbar, and accessible controls.
-- `src/services/image`: Skia rendering and the future native processor seam.
+- `src/services/image`: Skia rendering and the native processor seam.
 - `src/services/media`: gallery, camera, file, and media-library adapters.
+- `src/services/segmentation`: one-shot segmentation, confidence validation, and operation creation.
 - `src/db`: SQLite preset repository on native platforms and an equivalent
   in-memory adapter for web static export.
-- `src/native`: platform contracts such as future on-device segmentation.
+- `modules/blurra-subject-segmentation`: local Expo module with Vision on iOS
+  and ML Kit Selfie Segmentation on Android.
 
 Export snapshots the rendered Skia view, encodes PNG/JPEG locally, writes to
 the app cache, and only then opens the native share sheet or media-library save
@@ -48,7 +50,7 @@ encoding and sharing without pretending to solve full-resolution export. The
 future native `ExportEngine` will replay the same session against the original
 bitmap using Core Image/Metal on iOS and a native Android GPU/bitmap pipeline.
 
-## Native boundary planned later
+## Native boundary
 
 ```text
 React Native UI
@@ -57,5 +59,6 @@ React Native UI
   └── ExportEngine: Core Image/Metal / Android native GPU
 ```
 
-Only the first boundary is active in this POC. `SubjectSegmenter` and
-full-resolution `ExportEngine` remain interfaces, not fake implementations.
+`SubjectSegmenter` is active for imported portraits. It runs once, writes a
+local background mask, and the preview reuses that mask through Skia. The
+full-resolution `ExportEngine` remains a later native processor upgrade.

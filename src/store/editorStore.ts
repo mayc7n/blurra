@@ -10,8 +10,9 @@ export type EditorStore = {
   startSession: (source: PhotoSource) => void;
   addOperation: (operation: BlurOperation) => void;
   removeOperation: (operationId: string) => void;
-  updateOperation: (operationId: string, changes: Partial<Pick<BlurOperation, "shape" | "feather" | "intensity">>) => void;
+  updateOperation: (operationId: string, changes: Partial<Pick<BlurOperation, "mask" | "feather" | "intensity">>) => void;
   setActiveShapeKind: (shapeKind: BlurShapeKind) => void;
+  setActiveMaskMode: (maskMode: "inside" | "outside") => void;
   selectOperation: (operationId: string | null) => void;
   dispatch: (action: EditorAction) => void;
   setIntensity: (intensity: number) => void;
@@ -34,6 +35,7 @@ export const useEditorStore = create<EditorStore>((set) => {
     removeOperation: (operationId) => dispatch({ type: "removeOperation", operationId }),
     updateOperation: (operationId, changes) => dispatch({ type: "updateOperation", operationId, changes }),
     setActiveShapeKind: (shapeKind) => dispatch({ type: "setActiveShapeKind", shapeKind }),
+    setActiveMaskMode: (maskMode) => dispatch({ type: "setActiveMaskMode", maskMode }),
     selectOperation: (operationId) => dispatch({ type: "selectOperation", operationId }),
     dispatch,
     setIntensity: (intensity) => dispatch({ type: "setIntensity", intensity }),

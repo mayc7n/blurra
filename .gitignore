@@ -43,3 +43,11 @@ coverage/
 # Generated native projects; commit only when native customization is intentional.
 android/
 ios/
+
+# Native sources intentionally checked in for the local Expo segmentation module.
+!modules/
+!modules/blurra-subject-segmentation/
+!modules/blurra-subject-segmentation/android/
+!modules/blurra-subject-segmentation/android/**
+!modules/blurra-subject-segmentation/ios/
+!modules/blurra-subject-segmentation/ios/**

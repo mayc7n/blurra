@@ -5,6 +5,8 @@
 - Gallery and camera import.
 - Responsive editor with safe areas, zoom, pan, and six blur shapes.
 - Gaussian blur rendered by React Native Skia.
+- Automatic portrait background blur with local Vision/ML Kit segmentation.
+- Lasso fallback when segmentation is unavailable or low-confidence.
 - Undo/redo and before/after comparison.
 - Local PNG/JPEG export and native sharing.
 - Dark mode, Dynamic Type-friendly controls, and screen-reader labels.
@@ -15,8 +17,8 @@ full-resolution replay remains a later native processor upgrade.
 
 ## Next versions
 
-Presets, automatic person segmentation, radial blur, glass blur, motion blur,
-WebP export, cloud sync, and optional watermark billing remain outside this POC.
+Presets, mask refinement brush, radial blur, glass blur, motion blur, WebP
+export, cloud sync, and optional watermark billing remain outside this POC.
 
 The 16 ms preview target must be measured on physical low-memory and flagship
 devices before a production release is declared.

@@ -4,8 +4,9 @@ import { BlurOperation, BlurShapeKind, EditorSession, emptyEditorSession } from 
 export type EditorAction =
   | { type: "addOperation"; operation: BlurOperation }
   | { type: "removeOperation"; operationId: string }
-  | { type: "updateOperation"; operationId: string; changes: Partial<Pick<BlurOperation, "shape" | "feather" | "intensity">> }
+  | { type: "updateOperation"; operationId: string; changes: Partial<Pick<BlurOperation, "mask" | "feather" | "intensity">> }
   | { type: "setActiveShapeKind"; shapeKind: BlurShapeKind }
+  | { type: "setActiveMaskMode"; maskMode: "inside" | "outside" }
   | { type: "selectOperation"; operationId: string | null }
   | { type: "setIntensity"; intensity: number }
   | { type: "setBrushSize"; brushSize: number }
@@ -49,6 +50,8 @@ export function editorReducer(state: EditorHistory, action: EditorAction): Edito
       });
     case "setActiveShapeKind":
       return { ...state, present: { ...state.present, activeShapeKind: action.shapeKind } };
+    case "setActiveMaskMode":
+      return { ...state, present: { ...state.present, activeMaskMode: action.maskMode } };
     case "selectOperation":
       return { ...state, present: { ...state.present, selectedOperationId: action.operationId } };
     case "setIntensity":

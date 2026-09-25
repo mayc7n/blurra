@@ -5,7 +5,11 @@ import { editorReducer } from "./reducer";
 const operation = {
   id: "operation-1",
   blurType: "gaussian" as const,
-  shape: { kind: "circle" as const, center: { x: 0.52, y: 0.44 }, radius: 0.2 },
+  mask: {
+    kind: "shape" as const,
+    mode: "inside" as const,
+    shape: { kind: "circle" as const, center: { x: 0.52, y: 0.44 }, radius: 0.2 },
+  },
   feather: 0.35,
   intensity: 0.8,
 };

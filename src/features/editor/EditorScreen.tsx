@@ -8,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppTheme } from "../../design-system/ThemeProvider";
 import { useEditorStore } from "../../store/editorStore";
 import { getShapeSize, resizeBlurShape } from "../../domain/editor/shapes";
+import { createBackgroundBlurOperation, isUsableSegmentationResult, segmentPerson } from "../../services/segmentation/segmentationService";
 import { exportRenderedImage, ExportFormat, ExportedFile, saveExportToLibrary, shareExport } from "../../services/export/exportService";
 import { BrushControls } from "./BrushControls";
 import { EditorCanvas } from "./EditorCanvas";
@@ -22,6 +23,8 @@ export function EditorScreen() {
   const canvasRef = useRef<View>(null);
   const [isExportVisible, setExportVisible] = useState(false);
   const [isExporting, setExporting] = useState(false);
+  const [isSegmenting, setSegmenting] = useState(false);
+  const [segmentationStatus, setSegmentationStatus] = useState<string | null>(null);
   const history = useEditorStore((state) => state.history);
   const setIntensity = useEditorStore((state) => state.setIntensity);
   const setBrushSize = useEditorStore((state) => state.setBrushSize);
@@ -29,27 +32,51 @@ export function EditorScreen() {
   const addOperation = useEditorStore((state) => state.addOperation);
   const updateOperation = useEditorStore((state) => state.updateOperation);
   const setActiveShapeKind = useEditorStore((state) => state.setActiveShapeKind);
+  const setActiveMaskMode = useEditorStore((state) => state.setActiveMaskMode);
   const undo = useEditorStore((state) => state.undo);
   const redo = useEditorStore((state) => state.redo);
   const dispatch = useEditorStore((state) => state.dispatch);
   const session = history.present;
 
   const selectedOperation = session.operations.find((operation) => operation.id === session.selectedOperationId);
-  const handleAddOperation = useCallback((operation: Parameters<typeof addOperation>[0]) => addOperation(operation), [addOperation]);
-  const handleIntensityChange = useCallback(
-    (intensity: number) => selectedOperation ? updateOperation(selectedOperation.id, { intensity }) : setIntensity(intensity),
-    [selectedOperation, setIntensity, updateOperation],
-  );
-  const handleBrushSizeChange = useCallback(
-    (size: number) => selectedOperation
-      ? updateOperation(selectedOperation.id, { shape: resizeBlurShape(selectedOperation.shape, size) })
-      : setBrushSize(size),
-    [selectedOperation, setBrushSize, updateOperation],
-  );
-  const handleFeatherChange = useCallback(
-    (feather: number) => selectedOperation ? updateOperation(selectedOperation.id, { feather }) : setFeather(feather),
-    [selectedOperation, setFeather, updateOperation],
-  );
+  const selectedShape = selectedOperation?.mask.kind === "shape" ? selectedOperation.mask.shape : undefined;
+  const handleAddOperation = (operation: Parameters<typeof addOperation>[0]) => addOperation(operation);
+  const handleIntensityChange = (intensity: number) => selectedOperation ? updateOperation(selectedOperation.id, { intensity }) : setIntensity(intensity);
+  const handleBrushSizeChange = (size: number) => {
+    if (!selectedOperation || selectedOperation.mask.kind !== "shape") {
+      setBrushSize(size);
+      return;
+    }
+    updateOperation(selectedOperation.id, { mask: { ...selectedOperation.mask, shape: resizeBlurShape(selectedOperation.mask.shape, size) } });
+  };
+  const handleFeatherChange = (feather: number) => selectedOperation ? updateOperation(selectedOperation.id, { feather }) : setFeather(feather);
+
+  const handleShapeKindChange = (shapeKind: Parameters<typeof setActiveShapeKind>[0]) => {
+    setActiveShapeKind(shapeKind);
+    if (shapeKind !== "lasso") setActiveMaskMode("inside");
+  };
+
+  const handleSegmentBackground = async () => {
+    if (!session.sourceUri || isSegmenting) return;
+    setSegmenting(true);
+    setSegmentationStatus(null);
+    try {
+      const result = await segmentPerson(session.sourceUri);
+      if (!isUsableSegmentationResult(result)) {
+        throw new Error("A máscara ficou com baixa confiança.");
+      }
+      addOperation(createBackgroundBlurOperation(result, session.feather, session.intensity));
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setSegmentationStatus("Fundo selecionado. Ajuste a intensidade e a suavidade abaixo.");
+    } catch {
+      setActiveShapeKind("lasso");
+      setActiveMaskMode("outside");
+      setSegmentationStatus("Não foi possível separar o sujeito. Contorne-o com o lasso para borrar o fundo.");
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    } finally {
+      setSegmenting(false);
+    }
+  };
 
   const handleExport = useCallback(async (format: ExportFormat): Promise<ExportedFile> => {
     if (!canvasRef.current) throw new Error("Editor indisponível para exportação.");
@@ -86,7 +113,7 @@ export function EditorScreen() {
         </Pressable>
         <Text style={[styles.headerTitle, { color: theme.colors.foreground, fontSize: width < 360 ? 14 : 16 }]}>Editar foto</Text>
         <View style={styles.headerActions}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Ajuda do editor" onPress={() => Alert.alert("Blur circular", "Toque ou arraste sobre a foto para posicionar o círculo. Use dois dedos para ampliar e mover.")} style={styles.headerButton}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Ajuda do editor" onPress={() => Alert.alert("Editor", "Toque ou arraste sobre a foto para aplicar a forma selecionada. Use dois dedos para ampliar e mover.")} style={styles.headerButton}>
             <Text style={[styles.help, { color: theme.colors.foreground, borderColor: theme.colors.border }]}>?</Text>
           </Pressable>
         </View>
@@ -96,10 +123,14 @@ export function EditorScreen() {
       </View>
       <BrushControls
         intensity={selectedOperation?.intensity ?? session.intensity}
-        brushSize={selectedOperation ? getShapeSize(selectedOperation.shape) : session.brushSize}
+        brushSize={selectedShape ? getShapeSize(selectedShape) : session.brushSize}
         feather={selectedOperation?.feather ?? session.feather}
         shapeKind={session.activeShapeKind}
-        onShapeKindChange={setActiveShapeKind}
+        maskMode={session.activeMaskMode}
+        isSegmenting={isSegmenting}
+        statusMessage={segmentationStatus}
+        onShapeKindChange={handleShapeKindChange}
+        onSegmentBackground={handleSegmentBackground}
         onIntensityChange={handleIntensityChange}
         onBrushSizeChange={handleBrushSizeChange}
         onFeatherChange={handleFeatherChange}

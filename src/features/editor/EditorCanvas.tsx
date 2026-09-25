@@ -1,5 +1,6 @@
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import { runOnJS, useDerivedValue, useSharedValue, DerivedValue } from "react-native-reanimated";
+import { runOnJS, useDerivedValue, useSharedValue } from "react-native-reanimated";
+import type { DerivedValue } from "react-native-reanimated";
 import {
   Blur,
   BlurMask,
@@ -19,7 +20,7 @@ import { useCallback, useMemo, useState } from "react";
 import { LayoutChangeEvent, StyleSheet, View } from "react-native";
 import { clampNormalizedPoint, Dimensions, getContainFrame } from "../../domain/editor/coordinates";
 import { createBlurShape, getShapePoints, getShapeSize } from "../../domain/editor/shapes";
-import { BlurOperation, BlurShape, EditorSession } from "../../domain/editor/types";
+import type { BlurOperation, BlurShape, EditorSession } from "../../domain/editor/types";
 
 type EditorCanvasProps = {
   session: EditorSession;
@@ -40,27 +41,49 @@ function makeShapePath(shape: Exclude<BlurShape, { kind: "circle" }>, frame: Ret
   return builder.close().build();
 }
 
-function getOperationMask(shape: BlurShape, frame: ReturnType<typeof getContainFrame>, feather: number) {
+function renderShapeMask(shape: BlurShape, frame: ReturnType<typeof getContainFrame>, feather: number, color: string) {
   if (shape.kind === "circle") {
     const center = toCanvasPoint(shape.center, frame);
     return (
-      <Circle c={vec(center.x, center.y)} r={shape.radius * Math.min(frame.width, frame.height)} color="white">
+      <Circle c={vec(center.x, center.y)} r={shape.radius * Math.min(frame.width, frame.height)} color={color}>
         <BlurMask blur={feather * 28} style="normal" />
       </Circle>
     );
   }
 
   return (
-    <Path path={makeShapePath(shape, frame)} color="white" fillType="winding">
+    <Path path={makeShapePath(shape, frame)} color={color} fillType="winding">
       <BlurMask blur={feather * 28} style="normal" />
     </Path>
   );
 }
 
+function getShapeMask(shape: BlurShape, frame: ReturnType<typeof getContainFrame>, feather: number, mode: "inside" | "outside") {
+  if (mode === "inside") return renderShapeMask(shape, frame, feather, "white");
+
+  return (
+    <Group>
+      <Rect x={frame.x} y={frame.y} width={frame.width} height={frame.height} color="white" />
+      {renderShapeMask(shape, frame, feather, "black")}
+    </Group>
+  );
+}
+
 function OperationLayer({ operation, image, frame, opacity }: { operation: BlurOperation; image: ReturnType<typeof useImage>; frame: ReturnType<typeof getContainFrame>; opacity: number | DerivedValue<number> }) {
+  const segmentationImage = useImage(operation.mask.kind === "segmentation" ? operation.mask.uri : "");
+  if (operation.mask.kind === "segmentation" && !segmentationImage) return null;
+
+  const mask = operation.mask.kind === "segmentation"
+    ? (
+      <SkiaImage image={segmentationImage} x={frame.x} y={frame.y} width={frame.width} height={frame.height} fit="fill">
+        <BlurMask blur={operation.feather * 28} style="normal" />
+      </SkiaImage>
+    )
+    : getShapeMask(operation.mask.shape, frame, operation.feather, operation.mask.mode);
+
   return (
     <Group opacity={opacity}>
-      <Mask mode="alpha" mask={getOperationMask(operation.shape, frame, operation.feather)}>
+      <Mask mode={operation.mask.kind === "segmentation" ? "alpha" : "luminance"} mask={mask}>
         <SkiaImage image={image} x={frame.x} y={frame.y} width={frame.width} height={frame.height} fit="fill">
           <Blur blur={Math.max(1, operation.intensity * 32)} mode="clamp" />
         </SkiaImage>
@@ -86,7 +109,8 @@ export function EditorCanvas({ session, onAddOperation, showGuides = true }: Edi
     [session.sourceHeight, session.sourceWidth, viewport],
   );
   const selectedOperation = session.operations.find((operation) => operation.id === session.selectedOperationId);
-  const operationSize = selectedOperation ? getShapeSize(selectedOperation.shape) : session.brushSize;
+  const selectedShape = selectedOperation?.mask.kind === "shape" ? selectedOperation.mask.shape : undefined;
+  const operationSize = selectedShape ? getShapeSize(selectedShape) : session.brushSize;
   const operationIntensity = selectedOperation?.intensity ?? session.intensity;
   const operationFeather = selectedOperation?.feather ?? session.feather;
   const previewX = useSharedValue(viewport.width / 2);
@@ -190,12 +214,12 @@ export function EditorCanvas({ session, onAddOperation, showGuides = true }: Edi
       onAddOperation({
         id: `operation-${Date.now()}`,
         blurType: "gaussian",
-        shape,
+        mask: { kind: "shape", shape, mode: session.activeMaskMode },
         feather: operationFeather,
         intensity: operationIntensity,
       });
     },
-    [onAddOperation, operationFeather, operationIntensity, operationSize, session.activeShapeKind],
+    [onAddOperation, operationFeather, operationIntensity, operationSize, session.activeMaskMode, session.activeShapeKind],
   );
 
   const shapeGesture = Gesture.Pan()
@@ -245,7 +269,7 @@ export function EditorCanvas({ session, onAddOperation, showGuides = true }: Edi
     return <View style={styles.empty} onLayout={onLayout} />;
   }
 
-  const previewMask = session.activeShapeKind === "circle" ? (
+  const previewShapeMask = session.activeShapeKind === "circle" ? (
     <Circle c={previewCircleCenter} r={previewCircleRadius} color="white">
       <BlurMask blur={operationFeather * 28} style="normal" />
     </Circle>
@@ -253,6 +277,20 @@ export function EditorCanvas({ session, onAddOperation, showGuides = true }: Edi
     <Path path={previewPath} color="white" fillType="winding">
       <BlurMask blur={operationFeather * 28} style="normal" />
     </Path>
+  );
+  const previewMask = session.activeMaskMode === "inside" ? previewShapeMask : (
+    <Group>
+      <Rect x={frame.x} y={frame.y} width={frame.width} height={frame.height} color="white" />
+      {session.activeShapeKind === "circle" ? (
+        <Circle c={previewCircleCenter} r={previewCircleRadius} color="black">
+          <BlurMask blur={operationFeather * 28} style="normal" />
+        </Circle>
+      ) : (
+        <Path path={previewPath} color="black" fillType="winding">
+          <BlurMask blur={operationFeather * 28} style="normal" />
+        </Path>
+      )}
+    </Group>
   );
 
   return (
@@ -266,7 +304,7 @@ export function EditorCanvas({ session, onAddOperation, showGuides = true }: Edi
               <OperationLayer key={operation.id} operation={operation} image={image} frame={frame} opacity={persistedOpacity} />
             ))}
             <Group opacity={previewOpacity}>
-              <Mask mode="alpha" mask={previewMask}>
+              <Mask mode={session.activeMaskMode === "outside" ? "luminance" : "alpha"} mask={previewMask}>
                 <SkiaImage image={image} x={frame.x} y={frame.y} width={frame.width} height={frame.height} fit="fill">
                   <Blur blur={Math.max(1, operationIntensity * 32)} mode="clamp" />
                 </SkiaImage>
@@ -281,7 +319,7 @@ export function EditorCanvas({ session, onAddOperation, showGuides = true }: Edi
                 )}
               </Group>
             )}
-            {showGuides && selectedOperation && !session.isBeforeAfter && <ShapeGuide shape={selectedOperation.shape} frame={frame} />}
+            {showGuides && selectedShape && !session.isBeforeAfter && <ShapeGuide shape={selectedShape} frame={frame} />}
           </Group>
           <Rect x={frame.x} y={frame.y} width={frame.width} height={frame.height} color="rgba(255,255,255,0.12)" style="stroke" strokeWidth={1} />
         </Canvas>

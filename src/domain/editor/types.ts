@@ -10,10 +10,14 @@ export type BlurShape =
   | { kind: "polygon"; points: NormalizedPoint[] }
   | { kind: "lasso"; points: NormalizedPoint[] };
 
+export type BlurMask =
+  | { kind: "shape"; shape: BlurShape; mode: "inside" | "outside" }
+  | { kind: "segmentation"; uri: string; width: number; height: number; confidence: number; foregroundCoverage: number };
+
 export type BlurOperation = {
   id: string;
   blurType: "gaussian";
-  shape: BlurShape;
+  mask: BlurMask;
   feather: number;
   intensity: number;
 };
@@ -28,6 +32,7 @@ export type EditorSession = {
   operations: BlurOperation[];
   selectedOperationId: string | null;
   activeShapeKind: BlurShapeKind;
+  activeMaskMode: "inside" | "outside";
   isBeforeAfter: boolean;
 };
 
@@ -41,5 +46,6 @@ export const emptyEditorSession: EditorSession = {
   operations: [],
   selectedOperationId: null,
   activeShapeKind: "circle",
+  activeMaskMode: "inside",
   isBeforeAfter: false,
 };

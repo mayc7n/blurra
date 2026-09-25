@@ -4,7 +4,11 @@ import { useEditorStore } from "./editorStore";
 const operation = {
   id: "store-operation",
   blurType: "gaussian" as const,
-  shape: { kind: "circle" as const, center: { x: 0.5, y: 0.5 }, radius: 0.2 },
+  mask: {
+    kind: "shape" as const,
+    mode: "inside" as const,
+    shape: { kind: "circle" as const, center: { x: 0.5, y: 0.5 }, radius: 0.2 },
+  },
   feather: 0.3,
   intensity: 0.7,
 };

@@ -11,13 +11,15 @@
         "expo-image-picker",
         {
           "photosPermission": "O Blurra precisa acessar suas fotos para editar uma imagem.",
-          "cameraPermission": "O Blurra usa a câmera para capturar uma foto para edição."
+          "cameraPermission": "O Blurra usa a câmera para capturar uma foto para edição.",
+          "microphonePermission": false
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": "O Blurra usa a câmera para capturar uma foto para edição."
+          "cameraPermission": "O Blurra usa a câmera para capturar uma foto para edição.",
+          "recordAudioAndroid": false
         }
       ],
       "expo-sharing",
@@ -31,10 +33,15 @@
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "O Blurra precisa acessar suas fotos para editar uma imagem.",
         "NSCameraUsageDescription": "O Blurra usa a câmera para capturar uma foto para edição."
-      }
+      },
+      "bundleIdentifier": "com.mayc7n.blurra"
     },
     "android": {
-      "permissions": ["CAMERA", "READ_MEDIA_IMAGES"]
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES"
+      ],
+      "package": "com.mayc7n.blurra"
     }
   }
 }

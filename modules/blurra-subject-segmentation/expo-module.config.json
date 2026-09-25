@@ -1,0 +1,9 @@
+{
+  "platforms": ["android", "apple"],
+  "apple": {
+    "modules": ["BlurraSubjectSegmentationModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.blurrasubjectsegmentation.BlurraSubjectSegmentationModule"]
+  }
+}

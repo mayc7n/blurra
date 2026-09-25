@@ -33,13 +33,29 @@ npm run ios
 npm run web
 ```
 
-Módulos nativos próprios exigem development build:
+O `npm run ios` executa o build local pelo Xcode e requer macOS. Para testar
+no iPhone ou no simulador sem manter um ambiente nativo local, use os perfis
+EAS abaixo. O projeto já inclui `expo-dev-client`, necessário para o módulo
+nativo de segmentação.
 
 ```bash
-npx expo install expo-dev-client
-npx expo run:android
-npx expo run:ios
+npm run ios:build
+npm run ios:simulator
 ```
+
+Depois de instalar o development build no dispositivo, inicie o Metro com:
+
+```bash
+npm run ios:start
+```
+
+Para um iPhone físico, é necessário uma conta Apple Developer, registrar o
+dispositivo com `npx eas-cli@latest device:create` e ativar o Developer Mode no
+iOS. Para o simulador, instale o artefato gerado pelo perfil
+`development-simulator` em um Mac com Xcode.
+
+O fluxo Expo Go não é suficiente para este projeto: `@shopify/react-native-skia`
+e o módulo local `blurra-subject-segmentation` exigem um development build.
 
 ## Validação
 

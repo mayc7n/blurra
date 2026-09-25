@@ -7,6 +7,7 @@ imagens para um servidor.
 
 - Importação pela galeria ou câmera.
 - Blur em círculo, quadrado, retângulo, triângulo, polígono e lasso com preview em tempo real.
+- Blur automático do fundo em retratos, com fallback manual por lasso.
 - Ajuste de intensidade, raio e suavidade.
 - Zoom, pan, undo/redo e comparação antes/depois.
 - Exportação local em PNG ou JPEG.
