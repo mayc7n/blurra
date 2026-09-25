@@ -10,9 +10,16 @@ export type SegmentationResult = {
 };
 
 export function isUsableSegmentationResult(result: SegmentationResult): boolean {
-  return result.width > 0
+  return typeof result.maskUri === "string"
+    && result.maskUri.trim().length > 0
+    && Number.isInteger(result.width)
+    && result.width > 0
+    && Number.isInteger(result.height)
     && result.height > 0
+    && Number.isFinite(result.confidence)
     && result.confidence >= 0.35
+    && result.confidence <= 1
+    && Number.isFinite(result.foregroundCoverage)
     && result.foregroundCoverage >= 0.01
     && result.foregroundCoverage <= 0.95;
 }

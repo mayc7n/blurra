@@ -27,4 +27,10 @@ describe("segmentation service", () => {
     expect(isUsableSegmentationResult({ ...result, foregroundCoverage: 0.005 })).toBe(false);
     expect(isUsableSegmentationResult({ ...result, foregroundCoverage: 0.99 })).toBe(false);
   });
+
+  it("rejects a native result without a usable mask or finite metadata", () => {
+    expect(isUsableSegmentationResult({ ...result, maskUri: "   " })).toBe(false);
+    expect(isUsableSegmentationResult({ ...result, confidence: Number.POSITIVE_INFINITY })).toBe(false);
+    expect(isUsableSegmentationResult({ ...result, foregroundCoverage: Number.NaN })).toBe(false);
+  });
 });
