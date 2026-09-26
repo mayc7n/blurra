@@ -10,7 +10,7 @@ import { useEditorStore } from "../../store/editorStore";
 import { getShapeSize, resizeBlurShape } from "../../domain/editor/shapes";
 import { createBackgroundBlurOperation, getSegmentationOperationId, hasSegmentationOperation, isUsableSegmentationResult, segmentPerson } from "../../services/segmentation/segmentationService";
 import { exportRenderedImage, ExportFormat, ExportedFile, saveExportToLibrary, shareExport } from "../../services/export/exportService";
-import { getEditorUiModel } from "./editorUiModel";
+import { getEditorUiModel, getRemovalConfirmation } from "./editorUiModel";
 import { BrushControls } from "./BrushControls";
 import { EditorCanvas } from "./EditorCanvas";
 import { EditorToolbar } from "./EditorToolbar";
@@ -88,14 +88,34 @@ export function EditorScreen() {
 
   const handleRemoveSegmentedBackground = () => {
     if (!segmentationOperationId) return;
-    removeOperation(segmentationOperationId);
-    setSegmentationStatus("Blur automático removido. Você pode reaplicá-lo.");
+    const confirmation = getRemovalConfirmation("segmentation");
+    Alert.alert(confirmation.title, confirmation.message, [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: confirmation.confirmLabel,
+        style: "destructive",
+        onPress: () => {
+          removeOperation(segmentationOperationId);
+          setSegmentationStatus("Blur automático removido. Você pode reaplicá-lo.");
+        },
+      },
+    ]);
   };
 
   const handleRemoveSelectedOperation = () => {
     if (!selectedOperation || selectedOperation.mask.kind !== "shape") return;
-    removeOperation(selectedOperation.id);
-    setSegmentationStatus("Marcação removida.");
+    const confirmation = getRemovalConfirmation("shape");
+    Alert.alert(confirmation.title, confirmation.message, [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: confirmation.confirmLabel,
+        style: "destructive",
+        onPress: () => {
+          removeOperation(selectedOperation.id);
+          setSegmentationStatus("Marcação removida.");
+        },
+      },
+    ]);
   };
 
   const handleExport = useCallback(async (format: ExportFormat): Promise<ExportedFile> => {

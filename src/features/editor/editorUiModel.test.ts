@@ -1,6 +1,6 @@
 import { createHistory } from "../../domain/editor/history";
 import { emptyEditorSession } from "../../domain/editor/types";
-import { getEditorUiModel } from "./editorUiModel";
+import { getEditorUiModel, getRemovalConfirmation } from "./editorUiModel";
 
 describe("editor UI model", () => {
   it("disables editor actions before a photo is loaded", () => {
@@ -68,5 +68,18 @@ describe("editor UI model", () => {
       operations: [{ ...shapeOperation, mask: { kind: "segmentation" as const, uri: "file:///mask.png", width: 512, height: 384, confidence: 0.8, foregroundCoverage: 0.3 } }],
     };
     expect(getEditorUiModel({ past: [], present: segmentationSession, future: [] }).canRemoveSelectedOperation).toBe(false);
+  });
+
+  it("provides destructive confirmation copy for each removable mask", () => {
+    expect(getRemovalConfirmation("shape")).toEqual({
+      title: "Remover marcação?",
+      message: "A marcação selecionada será removida da foto.",
+      confirmLabel: "Remover",
+    });
+    expect(getRemovalConfirmation("segmentation")).toEqual({
+      title: "Remover blur automático?",
+      message: "O blur automático do fundo será removido da foto.",
+      confirmLabel: "Remover",
+    });
   });
 });
