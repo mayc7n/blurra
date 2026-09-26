@@ -8,7 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAppTheme } from "../../design-system/ThemeProvider";
 import { useEditorStore } from "../../store/editorStore";
 import { getShapeSize, resizeBlurShape } from "../../domain/editor/shapes";
-import { createBackgroundBlurOperation, hasSegmentationOperation, isUsableSegmentationResult, segmentPerson } from "../../services/segmentation/segmentationService";
+import { createBackgroundBlurOperation, getSegmentationOperationId, hasSegmentationOperation, isUsableSegmentationResult, segmentPerson } from "../../services/segmentation/segmentationService";
 import { exportRenderedImage, ExportFormat, ExportedFile, saveExportToLibrary, shareExport } from "../../services/export/exportService";
 import { BrushControls } from "./BrushControls";
 import { EditorCanvas } from "./EditorCanvas";
@@ -30,6 +30,7 @@ export function EditorScreen() {
   const setBrushSize = useEditorStore((state) => state.setBrushSize);
   const setFeather = useEditorStore((state) => state.setFeather);
   const addOperation = useEditorStore((state) => state.addOperation);
+  const removeOperation = useEditorStore((state) => state.removeOperation);
   const updateOperation = useEditorStore((state) => state.updateOperation);
   const setActiveShapeKind = useEditorStore((state) => state.setActiveShapeKind);
   const setActiveMaskMode = useEditorStore((state) => state.setActiveMaskMode);
@@ -40,6 +41,7 @@ export function EditorScreen() {
 
   const selectedOperation = session.operations.find((operation) => operation.id === session.selectedOperationId);
   const selectedShape = selectedOperation?.mask.kind === "shape" ? selectedOperation.mask.shape : undefined;
+  const segmentationOperationId = getSegmentationOperationId(session.operations);
   const handleAddOperation = (operation: Parameters<typeof addOperation>[0]) => addOperation(operation);
   const handleIntensityChange = (intensity: number) => selectedOperation ? updateOperation(selectedOperation.id, { intensity }) : setIntensity(intensity);
   const handleBrushSizeChange = (size: number) => {
@@ -80,6 +82,12 @@ export function EditorScreen() {
     } finally {
       setSegmenting(false);
     }
+  };
+
+  const handleRemoveSegmentedBackground = () => {
+    if (!segmentationOperationId) return;
+    removeOperation(segmentationOperationId);
+    setSegmentationStatus("Blur automático removido. Você pode reaplicá-lo.");
   };
 
   const handleExport = useCallback(async (format: ExportFormat): Promise<ExportedFile> => {
@@ -132,9 +140,11 @@ export function EditorScreen() {
         shapeKind={session.activeShapeKind}
         maskMode={session.activeMaskMode}
         isSegmenting={isSegmenting}
+        hasSegmentationOperation={segmentationOperationId !== null}
         statusMessage={segmentationStatus}
         onShapeKindChange={handleShapeKindChange}
         onSegmentBackground={handleSegmentBackground}
+        onRemoveSegmentedBackground={handleRemoveSegmentedBackground}
         onIntensityChange={handleIntensityChange}
         onBrushSizeChange={handleBrushSizeChange}
         onFeatherChange={handleFeatherChange}

@@ -14,6 +14,21 @@ const operation = {
   intensity: 0.8,
 };
 
+const segmentationOperation = {
+  id: "segmentation-1",
+  blurType: "gaussian" as const,
+  mask: {
+    kind: "segmentation" as const,
+    uri: "file:///cache/background-mask.png",
+    width: 512,
+    height: 384,
+    confidence: 0.82,
+    foregroundCoverage: 0.34,
+  },
+  feather: 0.35,
+  intensity: 0.8,
+};
+
 describe("editor reducer", () => {
   it("adds an operation, undoes it, and redoes it", () => {
     let state = createHistory(emptyEditorSession);
@@ -60,5 +75,22 @@ describe("editor reducer", () => {
 
     expect(state.present.operations).toEqual([]);
     expect(state.present.selectedOperationId).toBeNull();
+  });
+
+  it("removes only the automatic background operation and restores it with undo", () => {
+    let state = createHistory(emptyEditorSession);
+    state = editorReducer(state, { type: "addOperation", operation });
+    state = editorReducer(state, { type: "addOperation", operation: segmentationOperation });
+
+    state = editorReducer(state, { type: "removeOperation", operationId: segmentationOperation.id });
+
+    expect(state.present.operations).toEqual([operation]);
+    expect(state.present.selectedOperationId).toBe(operation.id);
+
+    state = editorReducer(state, { type: "undo" });
+    expect(state.present.operations).toEqual([operation, segmentationOperation]);
+
+    state = editorReducer(state, { type: "redo" });
+    expect(state.present.operations).toEqual([operation]);
   });
 });

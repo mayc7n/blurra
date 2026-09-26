@@ -42,7 +42,11 @@ export function createBackgroundBlurOperation(result: SegmentationResult, feathe
 }
 
 export function hasSegmentationOperation(operations: BlurOperation[]): boolean {
-  return operations.some((operation) => operation.mask.kind === "segmentation");
+  return getSegmentationOperationId(operations) !== null;
+}
+
+export function getSegmentationOperationId(operations: BlurOperation[]): string | null {
+  return operations.find((operation) => operation.mask.kind === "segmentation")?.id ?? null;
 }
 
 export async function segmentPerson(sourceUri: string): Promise<SegmentationResult> {

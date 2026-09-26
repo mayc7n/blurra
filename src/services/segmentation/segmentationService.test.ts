@@ -1,4 +1,4 @@
-import { createBackgroundBlurOperation, hasSegmentationOperation, isUsableSegmentationResult, SegmentationResult } from "./segmentationService";
+import { createBackgroundBlurOperation, getSegmentationOperationId, hasSegmentationOperation, isUsableSegmentationResult, SegmentationResult } from "./segmentationService";
 
 jest.mock("../../../modules/blurra-subject-segmentation", () => ({ default: { segment: jest.fn() } }));
 
@@ -39,5 +39,7 @@ describe("segmentation service", () => {
 
     expect(hasSegmentationOperation([])).toBe(false);
     expect(hasSegmentationOperation([operation])).toBe(true);
+    expect(getSegmentationOperationId([])).toBeNull();
+    expect(getSegmentationOperationId([operation])).toBe(operation.id);
   });
 });
