@@ -10,6 +10,7 @@ import { useEditorStore } from "../../store/editorStore";
 import { getShapeSize, resizeBlurShape } from "../../domain/editor/shapes";
 import { createBackgroundBlurOperation, getSegmentationOperationId, hasSegmentationOperation, isUsableSegmentationResult, segmentPerson } from "../../services/segmentation/segmentationService";
 import { exportRenderedImage, ExportFormat, ExportedFile, saveExportToLibrary, shareExport } from "../../services/export/exportService";
+import { getEditorUiModel } from "./editorUiModel";
 import { BrushControls } from "./BrushControls";
 import { EditorCanvas } from "./EditorCanvas";
 import { EditorToolbar } from "./EditorToolbar";
@@ -38,6 +39,7 @@ export function EditorScreen() {
   const redo = useEditorStore((state) => state.redo);
   const dispatch = useEditorStore((state) => state.dispatch);
   const session = history.present;
+  const uiModel = getEditorUiModel(history);
 
   const selectedOperation = session.operations.find((operation) => operation.id === session.selectedOperationId);
   const selectedShape = selectedOperation?.mask.kind === "shape" ? selectedOperation.mask.shape : undefined;
@@ -88,6 +90,12 @@ export function EditorScreen() {
     if (!segmentationOperationId) return;
     removeOperation(segmentationOperationId);
     setSegmentationStatus("Blur automático removido. Você pode reaplicá-lo.");
+  };
+
+  const handleRemoveSelectedOperation = () => {
+    if (!selectedOperation || selectedOperation.mask.kind !== "shape") return;
+    removeOperation(selectedOperation.id);
+    setSegmentationStatus("Marcação removida.");
   };
 
   const handleExport = useCallback(async (format: ExportFormat): Promise<ExportedFile> => {
@@ -141,10 +149,12 @@ export function EditorScreen() {
         maskMode={session.activeMaskMode}
         isSegmenting={isSegmenting}
         hasSegmentationOperation={segmentationOperationId !== null}
+        canRemoveSelectedOperation={uiModel.canRemoveSelectedOperation}
         statusMessage={segmentationStatus}
         onShapeKindChange={handleShapeKindChange}
         onSegmentBackground={handleSegmentBackground}
         onRemoveSegmentedBackground={handleRemoveSegmentedBackground}
+        onRemoveSelectedOperation={handleRemoveSelectedOperation}
         onIntensityChange={handleIntensityChange}
         onBrushSizeChange={handleBrushSizeChange}
         onFeatherChange={handleFeatherChange}

@@ -46,4 +46,27 @@ describe("editor UI model", () => {
 
     expect(model.hasOperations).toBe(true);
   });
+
+  it("allows removing a selected geometric operation but not the automatic mask", () => {
+    const shapeOperation = {
+      id: "operation-1",
+      blurType: "gaussian" as const,
+      mask: {
+        kind: "shape" as const,
+        mode: "inside" as const,
+        shape: { kind: "circle" as const, center: { x: 0.5, y: 0.5 }, radius: 0.2 },
+      },
+      feather: 0.3,
+      intensity: 0.8,
+    };
+    const shapeSession = { ...emptyEditorSession, sourceUri: "file:///photo.jpg", operations: [shapeOperation], selectedOperationId: shapeOperation.id };
+
+    expect(getEditorUiModel({ past: [], present: shapeSession, future: [] }).canRemoveSelectedOperation).toBe(true);
+
+    const segmentationSession = {
+      ...shapeSession,
+      operations: [{ ...shapeOperation, mask: { kind: "segmentation" as const, uri: "file:///mask.png", width: 512, height: 384, confidence: 0.8, foregroundCoverage: 0.3 } }],
+    };
+    expect(getEditorUiModel({ past: [], present: segmentationSession, future: [] }).canRemoveSelectedOperation).toBe(false);
+  });
 });

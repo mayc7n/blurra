@@ -12,6 +12,7 @@ type BrushControlsProps = {
   maskMode: "inside" | "outside";
   isSegmenting: boolean;
   hasSegmentationOperation: boolean;
+  canRemoveSelectedOperation: boolean;
   statusMessage: string | null;
   onIntensityChange: (value: number) => void;
   onBrushSizeChange: (value: number) => void;
@@ -19,6 +20,7 @@ type BrushControlsProps = {
   onShapeKindChange: (shapeKind: BlurShapeKind) => void;
   onSegmentBackground: () => void;
   onRemoveSegmentedBackground: () => void;
+  onRemoveSelectedOperation: () => void;
 };
 
 function ControlSlider({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
@@ -45,7 +47,7 @@ function ControlSlider({ label, value, onChange }: { label: string; value: numbe
   );
 }
 
-export function BrushControls({ intensity, brushSize, feather, shapeKind, maskMode, isSegmenting, hasSegmentationOperation, statusMessage, onIntensityChange, onBrushSizeChange, onFeatherChange, onShapeKindChange, onSegmentBackground, onRemoveSegmentedBackground }: BrushControlsProps) {
+export function BrushControls({ intensity, brushSize, feather, shapeKind, maskMode, isSegmenting, hasSegmentationOperation, canRemoveSelectedOperation, statusMessage, onIntensityChange, onBrushSizeChange, onFeatherChange, onShapeKindChange, onSegmentBackground, onRemoveSegmentedBackground, onRemoveSelectedOperation }: BrushControlsProps) {
   const theme = useAppTheme();
   const automaticActionLabel = hasSegmentationOperation ? "Remover blur automático" : "Borrar fundo automaticamente";
   return (
@@ -61,6 +63,18 @@ export function BrushControls({ intensity, brushSize, feather, shapeKind, maskMo
       >
         <Text style={[styles.subjectButtonText, { color: theme.colors.accent }]}>{isSegmenting ? "Analisando sujeito…" : automaticActionLabel}</Text>
       </Pressable>
+      {canRemoveSelectedOperation ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Remover marcação selecionada"
+          accessibilityState={{ disabled: isSegmenting }}
+          disabled={isSegmenting}
+          onPress={onRemoveSelectedOperation}
+          style={[styles.subjectButton, { borderColor: theme.colors.border, opacity: isSegmenting ? 0.55 : 1 }]}
+        >
+          <Text style={[styles.subjectButtonText, { color: theme.colors.foreground }]}>Remover marcação selecionada</Text>
+        </Pressable>
+      ) : null}
       {maskMode === "outside" ? <Text style={[styles.modeHint, { color: theme.colors.muted }]}>Modo lasso: área fora do contorno será borrada.</Text> : null}
       {statusMessage ? <Text style={[styles.modeHint, { color: theme.colors.muted }]}>{statusMessage}</Text> : null}
       <ControlSlider label="Intensidade" value={intensity} onChange={onIntensityChange} />
